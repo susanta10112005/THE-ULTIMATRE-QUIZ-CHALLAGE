@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI-powered quiz app with subject selection. Get fresh questions every time powered by Groq AI.">
+  <title>QuizAI — AI-Powered Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Animated background orbs -->
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+  <div class="bg-orb orb3"></div>
+
+  <!-- ===== SCREEN 0: API KEY SETUP ===== -->
+  <div id="screen-apikey" class="screen active">
+    <div class="card api-card">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">QuizAI</span>
+      </div>
+      <h1>Welcome to QuizAI</h1>
+      <p class="subtitle">Get AI-generated quiz questions on any subject, powered by Groq.</p>
+
+      <div class="api-steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <span>Go to <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> and create a free API key</span>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <span>Paste your key below — stored only in your browser</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="api-key-input">Groq API Key</label>
+        <div class="input-wrapper">
+          <input type="password" id="api-key-input" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+          <button class="toggle-visibility" id="toggle-key" aria-label="Toggle key visibility">👁</button>
+        </div>
+        <span id="api-key-error" class="error-msg"></span>
+      </div>
+
+      <button id="save-key-btn" class="btn-primary" onclick="saveApiKey()">
+        <span>Get Started</span>
+        <span class="btn-arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN 1: SUBJECT SELECTION ===== -->
+  <div id="screen-subject" class="screen">
+    <div class="card subject-card">
+      <div class="screen-header">
+        <div class="logo">
+          <span class="logo-icon">⚡</span>
+          <span class="logo-text">QuizAI</span>
+        </div>
+        <button class="btn-icon" id="change-key-btn" title="Change API Key" onclick="showApiKeyScreen()">🔑</button>
+      </div>
+
+      <h2>Choose Your Subject</h2>
+      <p class="subtitle">Select a subject and get 10 fresh AI-generated questions</p>
+
+      <div class="subject-grid" id="subject-grid">
+        <!-- Subjects injected by JS -->
+      </div>
+
+      <div class="difficulty-row">
+        <label>Difficulty:</label>
+        <div class="difficulty-pills">
+          <button class="pill active" data-diff="easy" onclick="setDifficulty('easy')">Easy</button>
+          <button class="pill" data-diff="medium" onclick="setDifficulty('medium')">Medium</button>
+          <button class="pill" data-diff="hard" onclick="setDifficulty('hard')">Hard</button>
+        </div>
+      </div>
+
+      <button id="start-quiz-btn" class="btn-primary" disabled onclick="startQuiz()">
+        <span id="start-btn-text">Enter</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ===== SCREEN 2: LOADING ===== -->
+  <div id="screen-loading" class="screen">
+    <div class="card loading-card">
+      <div class="loader-ring">
+        <svg viewBox="0 0 100 100">
+          <circle class="loader-track" cx="50" cy="50" r="40"/>
+          <circle class="loader-fill" cx="50" cy="50" r="40"/>
+        </svg>
+        <span class="loader-icon" id="loading-subject-icon">📚</span>
+      </div>
+      <h3 id="loading-subject-name" style="margin-top: -10px; margin-bottom: 20px; font-weight: 700; color: var(--accent-light);">Mathematics</h3>
+      <h2 id="loading-title">Generating Questions...</h2>
+      <p class="subtitle" id="loading-subtitle">Asking AI to craft 5 unique questions for you</p>
+      <div class="loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN 3: QUIZ ===== -->
+  <div id="screen-quiz" class="screen">
+    <div class="card quiz-card">
+
+      <!-- Top bar -->
+      <div class="quiz-topbar">
+        <div class="quiz-meta">
+          <span class="subject-badge" id="quiz-subject-label">📊 Math</span>
+          <span class="difficulty-badge" id="quiz-difficulty-label">Medium</span>
+        </div>
+        <div class="timer-wrap">
+          <div class="timer-ring">
+            <svg viewBox="0 0 60 60">
+              <circle class="timer-track" cx="30" cy="30" r="24"/>
+              <circle class="timer-fill" id="timer-circle" cx="30" cy="30" r="24"/>
+            </svg>
+            <span class="timer-text" id="timer-text">30</span>
+          </div>
+        </div>
+        <div class="score-display">
+          <span class="score-label">Score</span>
+          <span class="score-value" id="live-score">0</span>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <span class="progress-text" id="progress-text">1 / 5</span>
+      </div>
+
+      <!-- Question -->
+      <div class="question-area">
+        <p class="question-num" id="question-num">Question 1</p>
+        <h3 class="question-text" id="question-text">Loading question...</h3>
+      </div>
+
+      <!-- Answers -->
+      <div class="answers-grid" id="answers-grid">
+        <!-- Buttons injected by JS -->
+      </div>
+
+      <!-- Next button -->
+      <div class="quiz-footer">
+        <button id="next-question-btn" class="btn-primary hide" onclick="nextQuestion()">
+          <span id="next-btn-label">Next Question</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN 4: RESULTS ===== -->
+  <div id="screen-results" class="screen">
+    <div class="card results-card">
+      <div class="result-emoji" id="result-emoji">🏆</div>
+      <h2 class="result-title" id="result-title">Excellent!</h2>
+      <p class="result-subtitle" id="result-subtitle">You did great!</p>
+
+      <div class="score-ring-wrap">
+        <svg class="score-ring" viewBox="0 0 120 120">
+          <circle class="score-ring-track" cx="60" cy="60" r="50"/>
+          <circle class="score-ring-fill" id="score-ring-fill" cx="60" cy="60" r="50"/>
+        </svg>
+        <div class="score-ring-center">
+          <span class="final-score" id="final-score">0</span>
+          <span class="final-total" id="final-total">/ 5</span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item correct-stat">
+          <span class="stat-icon">✅</span>
+          <span class="stat-num" id="stat-correct">0</span>
+          <span class="stat-label">Correct</span>
+        </div>
+        <div class="stat-item wrong-stat">
+          <span class="stat-icon">❌</span>
+          <span class="stat-num" id="stat-wrong">0</span>
+          <span class="stat-label">Wrong</span>
+        </div>
+        <div class="stat-item time-stat">
+          <span class="stat-icon">⏱</span>
+          <span class="stat-num" id="stat-time">0s</span>
+          <span class="stat-label">Avg Time</span>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-primary" onclick="playAgain()">
+          <span>Play Again</span>
+          <span class="btn-arrow">🔄</span>
+        </button>
+        <button class="btn-secondary" onclick="changeSubject()">
+          <span>Change Subject</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js?v=2"></script>
+</body>
+</html>
